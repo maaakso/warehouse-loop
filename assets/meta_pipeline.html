@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>The Meta-Loop: a general model of a self-tuning process</title>
+<style>
+  :root{--bg:#f4f2ee;--card:#fff;--border:#ddd6cc;--text:#2a2723;--muted:#8a8378;
+        --orange:#d96c2f;--green:#4a9e4f;--blue:#3f7fbf;--purple:#8a5fbf;--red:#c94f3d}
+  body{font:14px/1.55 -apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:28px}
+  h1{font-size:20px;margin:0 0 4px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:22px;max-width:900px}
+  .lane{max-width:900px;margin:0 auto}
+  .stage{background:var(--card);border:1px solid var(--border);border-left:5px solid var(--border);
+         border-radius:10px;padding:14px 18px;position:relative}
+  .stage h2{font-size:15px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+  .stage h2 .who{margin-left:auto;font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px}
+  .det{background:#e8f0e0;color:#4a7a3a}.llm{background:#e4edf6;color:#3f6fa0}
+  .boss{background:#ece4f4;color:#7a4fa8}.owner{background:#f6e8dc;color:#b05c20}
+  .s1{border-left-color:var(--green)}.s2{border-left-color:var(--blue)}.s3{border-left-color:var(--orange)}
+  .s4{border-left-color:var(--red)}.s5{border-left-color:var(--purple)}
+  ul{margin:6px 0 2px 18px;padding:0} li{margin:3px 0}
+  .contract{font-size:11.5px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--border);padding-top:6px}
+  .contract b{color:var(--text)}
+  .arrow{text-align:center;color:var(--muted);font-size:12px;padding:8px 0}
+  .arrow b{color:var(--text)}
+  .duo{display:flex;gap:14px;flex-wrap:wrap} .duo .stage{flex:1;min-width:320px}
+  .grid{display:flex;gap:14px;max-width:900px;margin:22px auto 0;flex-wrap:wrap}
+  .side{flex:1;min-width:280px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:12.5px}
+  .side h3{font-size:13px;margin:0 0 6px}
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  td,th{padding:4px 8px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:500}
+</style></head><body>
+<div class="lane">
+<h1>The Meta-Loop: a general model of a self-tuning process</h1>
+<div class="sub">This is not a description of a pipeline. A pipeline is just one revolution of the cycle; the real object is the <b>improvement loop</b>. A product = a set of independent self-tuning loops; the LLM inside them is secondary and replaceable, the architecture remains.</div>
+
+<div class="stage" style="border-left-color:#b0a894;margin-bottom:8px">
+  <h2>Genesis of a loop: where the roles come from</h2>
+  <div style="font-size:13px">Every process starts as <b>human work</b> → a temporary <b>reviewer</b> appears →
+  accumulated decisions turn into a <b>deterministic process</b> → the reviewer is no longer needed →
+  the director stops intervening in operations. <b>A loop is mature when its recurring decisions are fully expressed in code and rules.</b>
+  Every role is technical debt: it exists only while the process is not yet mature enough.</div>
+  <ul style="font-size:13px;margin-top:8px">
+    <li><b>The law of decision gravity:</b> every decision tends to sink one level down —
+      director → hypothesis → rule → code → conveyor. A month later the director has forgotten that category of decisions exists.</li>
+    <li><b>The main flow is not actions but knowledge:</b> the loop turns complaints and verdicts into rules, rules into code.</li>
+    <li><b>The director is not temporary.</b> He stops running operations — but he alone changes the goals.</li>
+    <li><b>The manager's objective function</b> (minimize simultaneously): share of decisions made via LLM · complaints ·
+      doubts · processing cost · decision latency.</li>
+    <li><b>Complaints outweigh any internal metric</b> — an external source of truth; without it the loop
+      optimizes its own grades.</li>
+  </ul>
+</div>
+<div class="arrow">▼ roles of one revolution</div>
+
+<div class="stage s1">
+  <h2>1 · CONVEYOR — the work process <span class="who det">determinism + local models</span></h2>
+  <ul>
+    <li>Processes the <b>entire incoming stream</b> (all domain sources — no exceptions)</li>
+    <li>Applies confident decisions <b>itself</b>, immediately and reversibly; passes uncertain ones on</li>
+    <li>Runs on a schedule, lives locally, costs little</li>
+  </ul>
+  <div class="contract"><b>Contract:</b> every decision → journal (what, why, which signals); every action reversible; caps on volume per run.</div>
+</div>
+<div class="arrow">▼ the uncertain zone</div>
+
+<div class="stage s2">
+  <h2>2 · WORKER-REVIEWER — temporary controller <span class="who llm">LLM (being phased out)</span></h2>
+  <ul>
+    <li>Judges the uncertain zone: apply / defer to doubts / discard — verdicts <b>applied immediately</b>, reversibly</li>
+    <li><b>Reviews the conveyor as a whole:</b> also spot-rechecks the confident zone (sampled audit), watches run metrics</li>
+    <li>Audit disagreeing with the conveyor → a <b>flag in metrics</b> (not a unilateral override): the optimization manager and director decide</li>
+  </ul>
+  <div class="contract"><b>Contract:</b> verdict + reason → journal; audit disagreements → run metrics; its own quality is measured the same way; exists until the conveyor learns to do it itself.</div>
+</div>
+<div class="arrow">▼ applied actions + remaining doubts</div>
+
+<div class="stage s3">
+  <h2>3 · STOREFRONT + COMPLAINTS <span class="who owner">director (owner)</span></h2>
+  <ul>
+    <li>The result works immediately (goods on the shelves); the director need not approve anything in advance</li>
+    <li><b>Complaint</b>: one undo action + a free-text "why this was wrong" — the highest ground truth</li>
+    <li>Observation panel: live quality by tier, an action feed with reasons, degradation alerts, the doubt queue</li>
+  </ul>
+  <div class="contract"><b>Contract:</b> silence = consent; complaints outweigh any internal metric; everything visible in one place in 5 minutes.</div>
+</div>
+<div class="arrow">▼ journals + metrics + complaints ▼</div>
+
+<div class="stage s4">
+  <h2>4 · OPTIMIZATION MANAGER — analysis and decisions <span class="who boss">strong LLM</span></h2>
+  <ul>
+    <li><b>Breakdown:</b> assess the conveyor's work in numbers; process problems and <b>worker-reviewer problems — kept separate</b>; trend against past reviews</li>
+    <li><b>Decisions:</b> process changes (priority to deterministic ones that displace the worker); each with an expected effect and a way to verify it</li>
+    <li><b>Escalations to the director:</b> product forks, trade-offs, dead-ends — not decided alone</li>
+  </ul>
+  <div class="contract"><b>Contract:</b> honors the director's directives; does not repeat its own past hypotheses; decisions → cards in a shared backlog; periodic + on-demand.</div>
+</div>
+<div class="arrow">▼ auto-chain: decisions go straight to building</div>
+
+<div class="stage s5">
+  <h2>5 · BUILDER — implementation <span class="who boss">strong LLM, agentic</span></h2>
+  <ul>
+    <li>Takes the top decision → implements it with a minimal diff → <b>mandatory eval gate</b> (metrics no worse than baseline)</li>
+    <li>Gate passed → the change goes live, the next conveyor run works the new way; failure → <b>automatic revert</b> and an honest "why"</li>
+  </ul>
+  <div class="contract"><b>Contract:</b> edits only its own process files (whitelist); backup before editing; result goes to the director for acceptance (only he marks Done); one pass — one decision.</div>
+</div>
+<div class="arrow"><b>⟳ loop closed:</b> the conveyor got better → less work for the worker → fewer complaints for the director</div>
+
+<div class="grid">
+  <div class="side"><h3>👔 Director: two controls</h3>
+    <ul>
+      <li><b>Complaints</b> — pointed corrections of facts ("this doesn't go there, because…")</li>
+      <li><b>Directives</b> — the vector for the optimization manager (priorities, prohibitions, goals); edited in one line, re-read every cycle</li>
+      <li>Acceptance: Review → Done; escalations require his answer</li>
+    </ul>
+  </div>
+  <div class="side"><h3>📏 Loop maturity criteria</h3>
+    <ul>
+      <li>Share of decisions without a cloud LLM → rising</li>
+      <li>Live precision of tiers ≥ 95–98% → the worker is removed from the link</li>
+      <li>Complaints → toward zero; director involvement ≈ 5 min/day</li>
+      <li>Removing control tiers — by numbers only, bottom-up</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+</body></html>
