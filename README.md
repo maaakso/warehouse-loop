@@ -39,7 +39,7 @@ Self-modifying pipelines fail in known ways, so the rails are boring on purpose:
 
 ## What happened on day one
 
-The director undid one wrong auto-action and typed a one-line complaint: *"that's a support channel; this epic isn't in production yet."* Next cycle, the manager diagnosed it as a systematic error class. The builder shipped a deterministic scope gate, added a unit test, passed the gate with precision *up*, and the very message from the complaint is now blocked by code — not by a model's opinion. Second revolution, same day, fully unattended: a local message-type classifier, another cloud judgment moved on-prem.
+The director undid one wrong auto-action and left a one-line complaint explaining why that item didn't belong. Next cycle, the manager diagnosed it as a systematic error class. The builder shipped a deterministic scope gate, added a unit test, passed the gate with precision *up*, and the exact case from the complaint is now blocked by code — not by a model's opinion. Second revolution, same day, fully unattended: a local message-type classifier, another cloud judgment moved on-prem.
 
 Two turns of the loop, one human sentence each.
 
