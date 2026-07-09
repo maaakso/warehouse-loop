@@ -67,11 +67,14 @@
   <ul>
     <li>Judges the uncertain zone: apply / defer to doubts / discard — verdicts <b>applied immediately</b>, reversibly</li>
     <li><b>Reviews the conveyor as a whole:</b> also spot-rechecks the confident zone (sampled audit), watches run metrics</li>
+    <li><b>Post-shipment acceptance sweep</b> — independently re-checks the <b>entire fresh stream</b>, outside the hot path:
+      lost? handled correctly? right shelf? a one-off or a <b>class</b> of failure? Confident misses → fixed reversibly
+      (never the core tier); unsure → the director's doubts; systematic patterns → <b>escalated straight to the manager</b></li>
     <li>Audit disagreeing with the conveyor → a <b>flag in metrics</b> (not a unilateral override): the optimization manager and director decide</li>
   </ul>
-  <div class="contract"><b>Contract:</b> verdict + reason → journal; audit disagreements → run metrics; its own quality is measured the same way; exists until the conveyor learns to do it itself.</div>
+  <div class="contract"><b>Contract:</b> verdict + reason → journal; audit disagreements → run metrics; the <b>no-op share of its acceptance sweep is the loop's headline maturity metric</b>; a stronger (more expensive) model here is legitimate — a sharper inspector retires himself sooner; exists until the conveyor learns to do it itself.</div>
 </div>
-<div class="arrow">▼ applied actions + remaining doubts</div>
+<div class="arrow">▼ applied actions + remaining doubts &nbsp;·&nbsp; systemic escalations ⤵ straight to the manager (4)</div>
 
 <div class="stage s3">
   <h2>3 · STOREFRONT + COMPLAINTS <span class="who owner">director (owner)</span></h2>
@@ -88,7 +91,8 @@
   <h2>4 · OPTIMIZATION MANAGER — analysis and decisions <span class="who boss">strong LLM</span></h2>
   <ul>
     <li><b>Breakdown:</b> assess the conveyor's work in numbers; process problems and <b>worker-reviewer problems — kept separate</b>; trend against past reviews</li>
-    <li><b>Decisions:</b> process changes (priority to deterministic ones that displace the worker); each with an expected effect and a way to verify it</li>
+    <li><b>Triage of the worker's escalations — mandatory, each one:</b> is the problem real, fix it at all, fix it differently, or is there already a card (dedup)</li>
+    <li><b>Decisions:</b> process changes (priority to deterministic ones that raise the acceptance no-op rate); each with an expected effect and a way to verify it. <b>Cost cuts trail confirmed quality, never lead it</b> — trimming the worker's caps is not progress</li>
     <li><b>Escalations to the director:</b> product forks, trade-offs, dead-ends — not decided alone</li>
   </ul>
   <div class="contract"><b>Contract:</b> honors the director's directives; does not repeat its own past hypotheses; decisions → cards in a shared backlog; periodic + on-demand.</div>
@@ -109,15 +113,16 @@
   <div class="side"><h3>👔 Director: two controls</h3>
     <ul>
       <li><b>Complaints</b> — pointed corrections of facts ("this doesn't go there, because…")</li>
-      <li><b>Directives</b> — the vector for the optimization manager (priorities, prohibitions, goals); edited in one line, re-read every cycle</li>
+      <li><b>Directives</b> — the vector for the optimization manager; starts as one line, grows into a <b>numbered two-way protocol</b>: manager escalates a fork → the director's answer is recorded as a directive → that category never comes back; re-read every cycle</li>
       <li>Acceptance: Review → Done; escalations require his answer</li>
     </ul>
   </div>
   <div class="side"><h3>📏 Loop maturity criteria</h3>
     <ul>
+      <li><b>Acceptance no-op rate ≥ 95–98%</b> — the headline metric: the sweep changes nothing because the conveyor already shelved everything; below that, every non-ok verdict is the manager's pre-labeled work queue</li>
       <li>Share of decisions without a cloud LLM → rising</li>
-      <li>Live precision of tiers ≥ 95–98% → the worker is removed from the link</li>
       <li>Complaints → toward zero; director involvement ≈ 5 min/day</li>
+      <li>Cost falls only as a <b>consequence</b> of the no-op rate rising — never as a target</li>
       <li>Removing control tiers — by numbers only, bottom-up</li>
     </ul>
   </div>
