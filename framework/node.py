@@ -22,7 +22,7 @@ NODES = {
             "solutions_log":  os.path.join(BASE_DIR, "solutions.jsonl"),  # written by manager.py
             "builds_log":     os.path.join(BASE_DIR, "builds.jsonl"),     # written by builder.py
             "reviews_log":    os.path.join(BASE_DIR, "reviews.jsonl"),    # manager's problem layouts
-            "runs_log":       os.path.join(BASE_DIR, "runs.jsonl"),       # conveyor run journal (your conveyor writes it)
+            "runs_log":       os.path.join(BASE_DIR, "runs.jsonl"),       # conveyor run journal (your conveyor writes it; mode/aborted are mandatory — see "Run journal contract" in README.md)
             "feedback_log":   os.path.join(BASE_DIR, "feedback.jsonl"),   # director complaints / verdicts (ts per line)
             "loop_state":     os.path.join(BASE_DIR, "loop_state.json"),  # the single current increment (WIP=1)
             "backlog":        os.path.join(BASE_DIR, "backlog.json"),     # card queue shared with the director's board
@@ -31,6 +31,37 @@ NODES = {
             # trigger files: touching one wakes the corresponding worker (see ORCHESTRATION.md)
             "build_request":  os.path.join(BASE_DIR, "build_request"),
             "solve_request":  os.path.join(BASE_DIR, "solve_request"),
+            # live stage markers — a DIRECTORY, not a file: markers are ephemeral,
+            # the directory is what you bind-mount (see ORCHESTRATION.md, "Liveness")
+            "marker_dir":     os.path.join(BASE_DIR, "markers"),
+        },
+        # ── measurement currencies for measure_after ──
+        # A solution may declare its own window-closing condition,
+        # measure_after: {currency: N, ...} — the window closes when ANY
+        # currency reaches its count (OR), with the slow_window_days timeout
+        # always in force as a safety net. "days" is built in; every other
+        # currency must be declared here as {log, ts_field, pred}.
+        # CHECKLIST when wiring a node: open the REAL journal and verify the
+        # time field and the predicate for EVERY currency. Copied defaults
+        # fail silently — a wrong ts_field or a predicate that matches no
+        # line yields a counter that never counts, so the window only ever
+        # closes by timeout and the increment measures nothing.
+        "measure_events": {
+            "runs": {"log": "runs_log", "ts_field": "ts",
+                     "pred": lambda r: r.get("mode", "live") == "live"
+                     and not r.get("aborted")},
+            "director_verdicts": {"log": "feedback_log", "ts_field": "ts",
+                                  "pred": lambda r: True},
+        },
+        # ── director verdicts: the slow window's currency ──
+        # Verdicts of DIFFERENT nodes live in DIFFERENT places (a feedback
+        # journal here, a moderation table elsewhere) with different time
+        # fields and filters. A hardcoded shared source means one node's slow
+        # window gets closed by ANOTHER node's events — declare it per node.
+        "director_verdicts_source": {
+            "log": "feedback_log",   # key into "logs" (or an absolute path)
+            "ts_field": "ts",
+            "pred": lambda r: True,  # which lines count as a director verdict
         },
         # ── worker models (placeholders — plug in whatever runner you use) ──
         "models": {
@@ -85,6 +116,10 @@ NODES = {
         "providers": {
             "panel_provider":   "panel:run_panel",        # builds and journals one panel record
             "context_provider": "panel:collect_context",  # gathers the manager's input snapshot
+            # optional: "next_wake": "yourmodule:next_wake_ts" — epoch ms of the
+            # conveyor's next scheduled run, computed per node (calendar cron vs
+            # fixed interval — see ORCHESTRATION.md, "Liveness"). The clock knows
+            # the schedule, not the liveness of the scheduler.
         },
     },
 }

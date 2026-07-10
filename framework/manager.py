@@ -30,7 +30,6 @@ REVIEWS_LOG = NODE["logs"]["reviews_log"]
 BACKLOG = NODE["logs"]["backlog"]
 LOOP_STATE_PATH = NODE["logs"]["loop_state"]
 PANEL_LOG = NODE["logs"]["panel_log"]
-FEEDBACK_LOG = NODE["logs"]["feedback_log"]
 DIRECTIVES = NODE["logs"]["directives"]
 MANAGER_LASTFAIL = NODE["logs"]["manager_lastfail"]
 BUILD_REQUEST = NODE["logs"]["build_request"]
@@ -112,30 +111,76 @@ def panel_metric_values(panel, metric_target):
     return {n: flat[n] for n in names if n in flat}
 
 
-def count_director_verdicts(since_ms=0, path=FEEDBACK_LOG):
-    """Director verdicts (complaints / confirmations) journaled after since_ms.
-    The feedback journal is one JSON object per line with a 'ts' field."""
+def count_journal_events(spec, since_ms=0):
+    """Count journal lines matching a measurement-currency spec
+    {log, ts_field, pred} after since_ms; 'log' is a key of the node's "logs"
+    section (or a path). Used for the slow window (director_verdicts_source)
+    and for measure_after currencies (measure_events). When wiring a node,
+    verify ts_field and pred against the REAL journal — a wrong field name
+    counts nothing, silently, forever."""
+    path = NODE["logs"].get(spec.get("log"), spec.get("log"))
+    ts_field = spec.get("ts_field") or "ts"
+    pred = spec.get("pred") or (lambda r: True)
     n = 0
     try:
         for ln in open(path, encoding="utf-8"):
             try:
-                if json.loads(ln).get("ts", 0) > since_ms:
-                    n += 1
+                r = json.loads(ln)
             except ValueError:
-                pass
+                continue
+            if isinstance(r, dict) and r.get(ts_field, 0) > since_ms and pred(r):
+                n += 1
     except FileNotFoundError:
         pass
     return n
+
+
+def count_director_verdicts(since_ms=0):
+    """Director verdicts (complaints / confirmations) journaled after since_ms,
+    counted from the node's director_verdicts_source. Different nodes keep
+    their verdicts in different stores — a shared hardcoded source would close
+    one node's slow window with another node's events."""
+    return count_journal_events(NODE.get("director_verdicts_source")
+                                or {"log": "feedback_log"}, since_ms)
 
 
 def is_window_closed(increment, panel, director_verdicts_since=None, now_ms=None):
     """(closed, reason) for the current increment.
     fast: the panel has a record with ts > started_ts (recomputed after the change).
     slow: >= SLOW_WINDOW_VERDICTS director verdicts after started_ts, OR more
-    than SLOW_WINDOW_DAYS days have passed. director_verdicts_since is an
-    injection point for tests (defaults to the feedback journal)."""
+    than SLOW_WINDOW_DAYS days have passed.
+    measure_after: the solution may declare its own closing condition, e.g.
+    {"runs": 30, "director_verdicts": 10, "days": 3} — the window closes when
+    ANY currency reaches its count (OR across currencies). Currencies are the
+    node's measure_events ("days" is built in); an undeclared currency never
+    counts, and the SLOW_WINDOW_DAYS safety timeout applies regardless.
+    Without measure_after the fast/slow default above is unchanged.
+    director_verdicts_since is an injection point for tests (defaults to the
+    node's director_verdicts_source)."""
     started = increment.get("started_ts") or 0
     now_ms = now_ms if now_ms is not None else int(time.time() * 1000)
+    measure_after = increment.get("measure_after")
+    if isinstance(measure_after, dict) and measure_after:
+        if now_ms - started > SLOW_WINDOW_DAYS * 86400 * 1000:
+            return True, f"timeout>{SLOW_WINDOW_DAYS}d"
+        events = NODE.get("measure_events") or {}
+        for currency, target in measure_after.items():
+            try:
+                target = int(target)
+            except (TypeError, ValueError):
+                continue
+            if currency == "days":
+                if now_ms - started > target * 86400 * 1000:
+                    return True, f"measure_after days>={target}"
+            elif currency == "director_verdicts":
+                got = (director_verdicts_since if director_verdicts_since is not None
+                       else count_director_verdicts(started))
+                if got >= target:
+                    return True, f"measure_after director_verdicts>={target}"
+            elif currency in events:
+                if count_journal_events(events[currency], started) >= target:
+                    return True, f"measure_after {currency}>={target}"
+        return False, "measure_after_open"
     if (increment.get("window") or "slow") == "fast":
         if panel and (panel.get("ts") or 0) > started:
             return True, "panel_after_start"
@@ -343,7 +388,7 @@ def run_manager(dry=False):
                                  "reasoning": "LLM did not return a valid increment_verdict"}
         increment_verdict["increment"] = {k: inc.get(k) for k in
                                           ("title", "card_id", "metric_target", "window",
-                                           "started_ts", "baseline")}
+                                           "measure_after", "started_ts", "baseline")}
         increment_verdict["current"] = verdict_request.get("current")
         state["increment"] = None
         if not dry:
@@ -396,6 +441,9 @@ def run_manager(dry=False):
                 "started_ts": now,
                 "baseline": panel_metric_values(panel, s.get("metric_target")),
             }
+            # optional manager-declared closing condition (see is_window_closed)
+            if isinstance(s.get("measure_after"), dict) and s.get("measure_after"):
+                new_increment["measure_after"] = s["measure_after"]
             state["increment"] = new_increment
             save_loop_state(state)
             result["new_increment"] = new_increment

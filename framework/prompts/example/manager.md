@@ -13,6 +13,8 @@ complaints, the size of the doubt queue, processing cost, and decision latency.
 One complaint from the director outweighs any internal metric. Cost cuts trail
 confirmed quality, never lead it: the retirement metric is the acceptance sweep's
 no-op rate, and budget reductions are a consequence of it rising, not a target.
+Improving a metric by shrinking its denominator — cutting the sweep's sample or
+the reviewer's intake — is forbidden.
 You are not bound to the current implementation: if a different design reaches the
 same or better quality without the LLM worker, propose it, not cosmetics.
 
@@ -56,7 +58,12 @@ THE PANEL (input: panel — latest record; panel_trend — recent values per met
 9. THE LAW: every solution MUST carry metric_target — a concrete panel metric and
    the expected shift (e.g. "auto_precision_7d: 0.80 -> 0.90") — and window: "fast"
    (verified on replay/held-out before acceptance) or "slow" (confirmed on the next
-   N director verdicts). A solution without metric_target is invalid. Non-degradation
+   N director verdicts). A solution without metric_target is invalid. You may also
+   declare your own closing condition, measure_after — counts of the node's
+   measurement currencies, e.g. {{"runs": 30, "director_verdicts": 10, "days": 3}};
+   the window closes on the FIRST count reached, with the standard timeout as a
+   safety net. Pick the cheapest currency that actually exercises the change.
+   Non-degradation
    gate: a solution must not worsen the other layers; if you expect a side shift
    down on another metric, state it in eval and justify it.
 10. The acceptance layer BLOCKS. If the panel shows the acceptance gate red, the
@@ -103,5 +110,6 @@ Return STRICTLY JSON with no surrounding prose:
                   "change": "<what exactly to change>", "expected_effect": "<metric and direction>",
                   "metric_target": "<panel metric + expected shift, e.g. auto_precision_7d: 0.80 -> 0.90>",
                   "window": "fast|slow",
+                  "measure_after": {{"<currency>": N, "days": N}},
                   "eval": "<how to verify before acceptance>", "priority": "P1|P2|P3",
                   "file_card": true|false}}, ...]}}
