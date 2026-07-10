@@ -20,13 +20,9 @@
   .contract b{color:var(--text)}
   .arrow{text-align:center;color:var(--muted);font-size:12px;padding:8px 0}
   .arrow b{color:var(--text)}
-  .duo{display:flex;gap:14px;flex-wrap:wrap} .duo .stage{flex:1;min-width:320px}
   .grid{display:flex;gap:14px;max-width:900px;margin:22px auto 0;flex-wrap:wrap}
   .side{flex:1;min-width:280px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:12.5px}
   .side h3{font-size:13px;margin:0 0 6px}
-  table{border-collapse:collapse;width:100%;font-size:12px}
-  td,th{padding:4px 8px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
-  th{color:var(--muted);font-weight:500}
 </style></head><body>
 <div class="lane">
 <h1>The Meta-Loop: a general model of a self-tuning process</h1>
@@ -34,17 +30,19 @@
 
 <div class="stage" style="border-left-color:#b0a894;margin-bottom:8px">
   <h2>Genesis of a loop: where the roles come from</h2>
-  <div style="font-size:13px">Every process starts as <b>human work</b> → a temporary <b>reviewer</b> appears →
-  accumulated decisions turn into a <b>deterministic process</b> → the reviewer is no longer needed →
+  <div style="font-size:13px">Every process starts as <b>human work</b> → a temporary <b>acceptance worker</b> appears →
+  accumulated decisions turn into a <b>deterministic process</b> → the worker is no longer needed →
   the director stops intervening in operations. <b>A loop is mature when its recurring decisions are fully expressed in code and rules.</b>
   Every role is technical debt: it exists only while the process is not yet mature enough.</div>
   <ul style="font-size:13px;margin-top:8px">
     <li><b>The law of decision gravity:</b> every decision tends to sink one level down —
       director → hypothesis → rule → code → conveyor. A month later the director has forgotten that category of decisions exists.</li>
+    <li><b>The seniority law:</b> the director's actions are terminal for <b>every</b> automated role —
+      no worker, manager, or builder may revert, overwrite, or re-decide them: not in data, not in code, not in structure.</li>
+    <li><b>The denominator law:</b> a metric may never improve by shrinking what it measures
+      (sweep samples, reviewer caps, rate denominators); coverage cuts follow confirmed quality, never produce it.</li>
     <li><b>The main flow is not actions but knowledge:</b> the loop turns complaints and verdicts into rules, rules into code.</li>
     <li><b>The director is not temporary.</b> He stops running operations — but he alone changes the goals.</li>
-    <li><b>The manager's objective function</b> (minimize simultaneously): share of decisions made via LLM · complaints ·
-      doubts · processing cost · decision latency.</li>
     <li><b>Complaints outweigh any internal metric</b> — an external source of truth; without it the loop
       optimizes its own grades.</li>
   </ul>
@@ -54,58 +52,87 @@
 <div class="stage s1">
   <h2>1 · CONVEYOR — the work process <span class="who det">determinism + local models</span></h2>
   <ul>
-    <li>Processes the <b>entire incoming stream</b> (all domain sources — no exceptions)</li>
-    <li>Applies confident decisions <b>itself</b>, immediately and reversibly; passes uncertain ones on</li>
-    <li>Runs on a schedule, lives locally, costs little</li>
+    <li>Ships the <b>entire incoming window, leaving nothing undecided</b>: every item gets exactly one
+      journaled fate, and the journal partitions add up — "unsure" is itself a fate (parked, visibly,
+      until evidence arrives), never a silent leftover</li>
+    <li>Every action reversible; runs on a schedule, lives locally, costs little</li>
+    <li><b>The run journal is also its clock</b>: every record carries <i>mode</i> (live/dry) and <i>aborted</i>;
+      only successful live runs advance the intake window — rehearsals and crashes never eat material</li>
   </ul>
-  <div class="contract"><b>Contract:</b> every decision → journal (what, why, which signals); every action reversible; caps on volume per run.</div>
+  <div class="contract"><b>Contract:</b> every decision → journal (what, why, which signals); caps on volume per run;
+  engine edits only <b>cold</b> — freeze, accumulate, one deploy behind a pre-flight checklist (syntax → tests →
+  rehearsal → checksums), unfreeze.</div>
 </div>
-<div class="arrow">▼ the uncertain zone</div>
+<div class="arrow">▼ the full delivery, already shelved</div>
 
 <div class="stage s2">
-  <h2>2 · WORKER-REVIEWER — temporary controller <span class="who llm">LLM (being phased out)</span></h2>
+  <h2>2 · ACCEPTANCE WORKER — temporary inspector <span class="who llm">LLM (being phased out)</span></h2>
   <ul>
-    <li>Judges the uncertain zone: apply / defer to doubts / discard — verdicts <b>applied immediately</b>, reversibly</li>
-    <li><b>Reviews the conveyor as a whole:</b> also spot-rechecks the confident zone (sampled audit), watches run metrics</li>
-    <li><b>Post-shipment acceptance sweep</b> — independently re-checks the <b>entire fresh stream</b>, outside the hot path:
-      lost? handled correctly? right shelf? a one-off or a <b>class</b> of failure? Confident misses → fixed reversibly
-      (never the core tier); unsure → the director's doubts; systematic patterns → <b>escalated straight to the manager</b></li>
-    <li>Audit disagreeing with the conveyor → a <b>flag in metrics</b> (not a unilateral override): the optimization manager and director decide</li>
+    <li><b>Full post-shipment acceptance sweep</b> — independently re-checks the <b>entire delivery</b>, outside
+      the hot path: lost? handled correctly? right shelf? a one-off or a <b>class</b> of failure?</li>
+    <li><b>Any conveyor mistake is his to fix</b> — reversibly, with an undo journal; a wrongly-shelved item
+      goes back through the conveyor rather than being hand-placed</li>
+    <li><b>Bounded by default:</b> under doubt the verdict is no-op (<i>leave it</i>, never <i>improve it</i>);
+      corrections per run are hard-capped — a sweep that "finds" connections manufactures them</li>
+    <li><b>New powers ship in would-mode behind a write-guard</b>: journaled "would have fixed" until the dry
+      record earns the director's flag; the director's own verdicts are untouchable</li>
+    <li>Unsure → the director's doubt queue; systematic patterns → <b>escalated straight to the manager</b></li>
   </ul>
-  <div class="contract"><b>Contract:</b> verdict + reason → journal; audit disagreements → run metrics; the <b>no-op share of its acceptance sweep is the loop's headline maturity metric</b>; a stronger (more expensive) model here is legitimate — a sharper inspector retires himself sooner; exists until the conveyor learns to do it itself.</div>
+  <div class="contract"><b>Contract:</b> verdict + reason → journal, every run; zero-cost exit when the delivery is
+  empty; the <b>no-op share of the sweep is the loop's headline maturity metric</b>; a stronger (more expensive)
+  model here is legitimate — a sharper inspector retires himself sooner; exists until the conveyor learns to do it itself.</div>
 </div>
-<div class="arrow">▼ applied actions + remaining doubts &nbsp;·&nbsp; systemic escalations ⤵ straight to the manager (4)</div>
+<div class="arrow">▼ applied fixes + doubts &nbsp;·&nbsp; systemic escalations ⤵ straight to the manager (4)</div>
 
 <div class="stage s3">
   <h2>3 · STOREFRONT + COMPLAINTS <span class="who owner">director (owner)</span></h2>
   <ul>
     <li>The result works immediately (goods on the shelves); the director need not approve anything in advance</li>
     <li><b>Complaint</b>: one undo action + a free-text "why this was wrong" — the highest ground truth</li>
-    <li>Observation panel: live quality by tier, an action feed with reasons, degradation alerts, the doubt queue</li>
+    <li><b>His feedback is its own channel</b>: a verdict table in the node's store, applied at the start of every
+      live run; a director verdict outranks any sweep verdict and is never deleted — it feeds the panel and the manager</li>
+    <li>Observation panel: live quality by tier, an action feed with reasons, liveness markers, the doubt queue</li>
   </ul>
-  <div class="contract"><b>Contract:</b> silence = consent; complaints outweigh any internal metric; everything visible in one place in 5 minutes.</div>
+  <div class="contract"><b>Contract:</b> silence = consent; complaints outweigh any internal metric; the panel has a
+  deterministic self-test — a gauge that disagrees with reality is repaired as its own class of work; everything
+  visible in one place in 5 minutes.</div>
 </div>
-<div class="arrow">▼ journals + metrics + complaints ▼</div>
+<div class="arrow">▼ journals + panel & trend + complaints + the worker's escalations ▼</div>
 
 <div class="stage s4">
   <h2>4 · OPTIMIZATION MANAGER — analysis and decisions <span class="who boss">strong LLM</span></h2>
   <ul>
-    <li><b>Breakdown:</b> assess the conveyor's work in numbers; process problems and <b>worker-reviewer problems — kept separate</b>; trend against past reviews</li>
-    <li><b>Triage of the worker's escalations — mandatory, each one:</b> is the problem real, fix it at all, fix it differently, or is there already a card (dedup)</li>
-    <li><b>Decisions:</b> process changes (priority to deterministic ones that raise the acceptance no-op rate); each with an expected effect and a way to verify it. <b>Cost cuts trail confirmed quality, never lead it</b> — trimming the worker's caps is not progress</li>
-    <li><b>Escalations to the director:</b> product forks, trade-offs, dead-ends — not decided alone</li>
+    <li><b>Breakdown:</b> the conveyor's work in numbers; conveyor problems and <b>worker problems — kept separate</b>;
+      trend against past reviews; a sample audit with its own eyes — samples disagreeing with the panel indict the
+      <b>metric</b>, not the conveyor</li>
+    <li><b>Triage of the worker's escalations — mandatory, each one:</b> real? fix at all? fix differently? already carded?</li>
+    <li><b>One increment in measurement at a time (WIP=1)</b>: every solution declares a <i>metric_target</i> and its own
+      closing condition (<i>measure_after</i>: runs / director verdicts / days — whichever count is reached first, with a
+      timeout safety net); while the window is open the manager exits without an LLM call</li>
+    <li><b>Window closes → verdict</b>: accept / rollback / inconclusive, grounded in the frozen baseline vs the panel</li>
+    <li><b>Ladder of alternatives before any tune-up</b>: a plain heuristic → a cheaper/local model → a wider redesign;
+      changes that alter how the conveyor decides must pass the <b>rehearsal gate</b> — replay over recorded history
+      against what actually happened</li>
+    <li><b>Escalations to the director:</b> product forks, trade-offs, dead-ends; anything it can test itself it decides
+      and files as an <b>FYI</b>. Once a day — a <b>brief upward</b>: verdicts closed, escalations, FYIs, in one digest</li>
   </ul>
-  <div class="contract"><b>Contract:</b> honors the director's directives; does not repeat its own past hypotheses; decisions → cards in a shared backlog; periodic + on-demand.</div>
+  <div class="contract"><b>Contract:</b> honors the directives file (a numbered two-way protocol, re-read every cycle);
+  decisions are <b>general rules</b> (properties and thresholds, never hardcoded names — a spot fix is blocked, not built);
+  a solution without a metric_target is dropped deterministically; decisions → cards in a shared backlog, one label per team.</div>
 </div>
-<div class="arrow">▼ auto-chain: decisions go straight to building</div>
+<div class="arrow">▼ auto-chain: the top decision goes straight to building</div>
 
 <div class="stage s5">
   <h2>5 · BUILDER — implementation <span class="who boss">strong LLM, agentic</span></h2>
   <ul>
-    <li>Takes the top decision → implements it with a minimal diff → <b>mandatory eval gate</b> (metrics no worse than baseline)</li>
-    <li>Gate passed → the change goes live, the next conveyor run works the new way; failure → <b>automatic revert</b> and an honest "why"</li>
+    <li>Takes only cards with <b>its own label</b> → minimal diff + unit test + docs in the same pass →
+      <b>mandatory eval gate</b> (held-out metrics no worse than baseline)</li>
+    <li>Gate passed → the change goes live for the next conveyor run; failure → <b>automatic revert</b> and an honest "why"</li>
+    <li><b>Never reverts the director</b>: a change that undoes his verdicts — in code, data, or structure — is refused</li>
   </ul>
-  <div class="contract"><b>Contract:</b> edits only its own process files (whitelist); backup before editing; result goes to the director for acceptance (only he marks Done); one pass — one decision.</div>
+  <div class="contract"><b>Contract:</b> edits only its own process files (whitelist); backup before editing; a blocked
+  build sheds the builder's label and gains the escalation label — the loop does not hammer the same wall; chain and
+  daily caps bound autonomy; result goes to the director for acceptance (only he marks Done).</div>
 </div>
 <div class="arrow"><b>⟳ loop closed:</b> the conveyor got better → less work for the worker → fewer complaints for the director</div>
 
@@ -113,17 +140,36 @@
   <div class="side"><h3>👔 Director: two controls</h3>
     <ul>
       <li><b>Complaints</b> — pointed corrections of facts ("this doesn't go there, because…")</li>
-      <li><b>Directives</b> — the vector for the optimization manager; starts as one line, grows into a <b>numbered two-way protocol</b>: manager escalates a fork → the director's answer is recorded as a directive → that category never comes back; re-read every cycle</li>
+      <li><b>Directives</b> — the vector for the manager; starts as one line, grows into a <b>numbered two-way
+        protocol</b>: manager escalates a fork → the answer is recorded as a directive → that category never comes back</li>
       <li>Acceptance: Review → Done; escalations require his answer</li>
     </ul>
   </div>
   <div class="side"><h3>📏 Loop maturity criteria</h3>
     <ul>
-      <li><b>Acceptance no-op rate ≥ 95–98%</b> — the headline metric: the sweep changes nothing because the conveyor already shelved everything; below that, every non-ok verdict is the manager's pre-labeled work queue</li>
-      <li>Share of decisions without a cloud LLM → rising</li>
-      <li>Complaints → toward zero; director involvement ≈ 5 min/day</li>
-      <li>Cost falls only as a <b>consequence</b> of the no-op rate rising — never as a target</li>
+      <li><b>Acceptance no-op rate ≥ 95–98%</b> — the headline metric: the sweep changes nothing because the conveyor
+        already shelved everything; below that, every non-ok verdict is the manager's pre-labeled work queue</li>
+      <li>Share of decisions without a cloud LLM → rising; complaints → toward zero; director involvement ≈ 5 min/day</li>
+      <li>Cost falls only as a <b>consequence</b> of the no-op rate rising — never as a target (the denominator law)</li>
       <li>Removing control tiers — by numbers only, bottom-up</li>
+    </ul>
+  </div>
+  <div class="side"><h3>🌱 Shelves are born and die</h3>
+    <ul>
+      <li><b>Birth needs an evidence bar</b>: below the declared threshold the candidate is parked, visibly,
+        awaiting evidence — a fate, not a rejection</li>
+      <li><b>The dead don't crowd the living</b>: dedup runs only against live shelves; a retired shelf leaves an
+        immutable tombstone that never blocks a new birth</li>
+      <li><b>Rebirth is a road, not a resurrection</b>: a wrongly killed shelf returns through the normal birth
+        path — never by editing the tombstone</li>
+    </ul>
+  </div>
+  <div class="side"><h3>🔩 Reliability contracts</h3>
+    <ul>
+      <li><b>Journals are append-only</b> — a correction is a new line; baseline and verdicts replay from frozen history</li>
+      <li><b>Zero-cost empty path</b> for every worker: no LLM call, no journal noise when there is no work</li>
+      <li><b>One writer at a time</b>: deploys serialized; a store shared by two loops has a single writer</li>
+      <li><b>Instruments are code too</b>: the panel self-tests; a lying gauge is fixed before the conveyor is tuned</li>
     </ul>
   </div>
 </div>
