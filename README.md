@@ -8,7 +8,7 @@
 
 - Most agent architectures add agents. This pattern exists to remove them: pipelines that improve themselves out of needing an LLM.
 - The unit of architecture is not the pipeline — a pipeline is one revolution of an improvement loop. The LLM inside is secondary and replaceable.
-- Five roles: a deterministic conveyor does the work; a temporary LLM worker handles only uncertain cases; a human director never pre-approves — his tool is a one-click complaint plus "why"; a manager LLM turns complaints into decisions; a builder ships them behind an eval gate with auto-revert.
+- Five roles: a deterministic conveyor does all the work; a temporary LLM worker runs an independent acceptance sweep after it; a human director never pre-approves — his tool is a one-click complaint plus "why"; a manager LLM turns complaints and escalations into tested hypotheses; a builder ships them behind an eval gate with auto-revert.
 - The law of decision gravity: every recurring decision must sink a level down — human → hypothesis → rule → code.
 - Complaints outrank every internal metric; otherwise the system optimizes its own grades.
 
