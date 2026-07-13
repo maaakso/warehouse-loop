@@ -2,6 +2,16 @@
 
 *A production pipeline that rebuilds itself twice a day, with the LLM kept out of the control path.*
 
+> **Status: running in production** on one workspace (two loops live as of July 2026). This is an essay — a composition of existing approaches written down as a pattern, not a framework. The environment this loop maintains is described in the sequels: [environment, not memory](https://github.com/maaakso/environment-not-memory) and [the environment over the chaos](https://github.com/maaakso/environment-over-chaos).
+
+**TL;DR**
+
+- Most agent architectures add agents. This pattern exists to remove them: pipelines that improve themselves out of needing an LLM.
+- The unit of architecture is not the pipeline — a pipeline is one revolution of an improvement loop. The LLM inside is secondary and replaceable.
+- Five roles: a deterministic conveyor does the work; a temporary LLM worker handles only uncertain cases; a human director never pre-approves — his tool is a one-click complaint plus "why"; a manager LLM turns complaints into decisions; a builder ships them behind an eval gate with auto-revert.
+- The law of decision gravity: every recurring decision must sink a level down — human → hypothesis → rule → code.
+- Complaints outrank every internal metric; otherwise the system optimizes its own grades.
+
 ## The problem
 
 Every ML pipeline ships imperfect. The usual fix is a human reviewing its output forever, or an LLM wired into the hot path forever. Both are permanent taxes. There is a third option: **a pipeline that gets measurably better every day, on a trajectory to needing neither.**
@@ -59,3 +69,7 @@ None of the parts are new. Recursive self-improvement, eval-gated code changes (
 ## The point
 
 Don't ask an LLM to *be* the system. Ask it to *shrink itself out of* the system — and give it journals, a gate, and a complaints box so the shrinking shows up in numbers.
+
+## License
+
+Text and diagrams: [CC BY 4.0](LICENSE). If code appears in this repository later, it will carry its own permissive license (MIT or Apache-2.0).
